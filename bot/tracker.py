@@ -11,13 +11,18 @@ logging.basicConfig(
 )
 
 # Настройки
-REPOSITORIES = [
-    "huggingface/transformers",  # Репозиторий Hugging Face
-    "openai/gpt-4",  # Репозиторий OpenAI
-    "google-research/bert"  # Репозиторий Google Research
-]
+REPOSITORIES_FILE = os.path.join(os.path.dirname(__file__), "repositories.txt")  # Путь к файлу
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Токен из Secrets
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # Chat ID из Secrets
+
+# Функция для чтения репозиториев из файла
+def load_repositories():
+    try:
+        with open(REPOSITORIES_FILE, "r") as file:
+            return [line.strip() for line in file if line.strip()]
+    except FileNotFoundError:
+        logging.error(f"Файл {REPOSITORIES_FILE} не найден")
+        return []
 
 # Функция для отправки сообщения в Telegram
 def send_telegram_message(message):
@@ -52,6 +57,9 @@ def check_github_releases(repo):
         logging.error(f"Ошибка при запросе к GitHub API: {e}")
     return None, None, None, None
 
+# Загружаем репозитории
+REPOSITORIES = load_repositories()
+
 # Словарь для хранения последних отправленных релизов
 last_sent_releases = {repo: None for repo in REPOSITORIES}
 
@@ -67,11 +75,11 @@ try:
                 message = (
                     f"новый релиз {repo_name}: {latest_release_name}\n"
                     f"[подробнее]({latest_release_url})\n\n"
-                    f"Описание:\n{latest_release_body[:500]}..."  # Обрезаем описание до 500 символов
+                    f"Описание:\n{latest_release_body[:200]}..."  # Обрезаем описание до 200 символов
                 )
                 send_telegram_message(message)
                 last_sent_releases[repo] = latest_release_id  # Обновляем последний отправленный релиз
-        time.sleep(4*3600)  # Проверка каждые 4 часа
+        time.sleep(3600)  # Проверка каждый час
 except KeyboardInterrupt:
     logging.info("Скрипт завершен")
 except Exception as e:
