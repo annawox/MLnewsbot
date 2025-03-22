@@ -75,7 +75,7 @@ try:
                 message = (
                     f"новый релиз {repo_name}: {latest_release_name}\n"
                     f"[подробнее]({latest_release_url})\n\n"
-                    f"Описание:\n{latest_release_body[:200]}..."  # Обрезаем описание до 200 символов
+                    f"Описание:\n{latest_release_body[:400]}..."  # Обрезаем описание до 400 символов
                 )
                 send_telegram_message(message)
                 last_sent_releases[repo] = latest_release_id  # Обновляем последний отправленный релиз
