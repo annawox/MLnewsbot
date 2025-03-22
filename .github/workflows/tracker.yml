@@ -1,0 +1,27 @@
+name: GitHub Release Tracker
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Запускать каждый час
+  workflow_dispatch:  # Ручной запуск
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run tracker script
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python github_tracker.py
