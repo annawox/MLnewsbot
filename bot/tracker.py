@@ -1,44 +1,66 @@
 import os
 import requests
 import time
+import logging
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="bot.log"  # Логи будут сохраняться в файл bot.log
+)
 
 # Настройки
 REPOSITORIES = [
+    "huggingface/transformers",  # Репозиторий Hugging Face
     "openai/gpt-4",  # Репозиторий OpenAI
-    "google-research/bert",  # Репозиторий Google Research
-    "huggingface/transformers"  # Репозиторий Hugging Face
+    "google-research/bert"  # Репозиторий Google Research
 ]
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Токен из Secrets
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # Chat ID из Secrets
 
 # Функция для отправки сообщения в Telegram
 def send_telegram_message(message):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": message
-    }
-    requests.post(url, json=payload)
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": message
+        }
+        response = requests.post(url, json=payload)
+        response.raise_for_status()  # Проверка на ошибки HTTP
+        logging.info(f"Сообщение отправлено: {message}")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Ошибка при отправке сообщения в Telegram: {e}")
 
 # Функция для проверки релизов
 def check_github_releases(repo):
-    url = f"https://api.github.com/repos/{repo}/releases"
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        url = f"https://api.github.com/repos/{repo}/releases"
+        response = requests.get(url)
+        response.raise_for_status()  # Проверка на ошибки HTTP
         releases = response.json()
         if releases:
-            return releases[0]["name"]  # Имя последнего релиза
-    return None
+            return releases[0]["id"], releases[0]["name"]  # Возвращаем ID и имя релиза
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Ошибка при запросе к GitHub API: {e}")
+    return None, None
 
-# Словарь для хранения последних релизов
-last_releases = {repo: None for repo in REPOSITORIES}
+# Словарь для хранения последних отправленных релизов
+last_sent_releases = {repo: None for repo in REPOSITORIES}
 
 # Основной цикл
-while True:
-    for repo in REPOSITORIES:
-        latest_release = check_github_releases(repo)
-        if latest_release and latest_release != last_releases[repo]:
-            message = f"Новый релиз в {repo}: {latest_release}"
-            send_telegram_message(message)
-            last_releases[repo] = latest_release
-    time.sleep(3600)  # Проверка каждый час
+logging.info("Скрипт запущен")
+try:
+    while True:
+        for repo in REPOSITORIES:
+            latest_release_id, latest_release_name = check_github_releases(repo)
+            if latest_release_id and latest_release_id != last_sent_releases[repo]:
+                message = f"Новый релиз в {repo}: {latest_release_name}"
+                send_telegram_message(message)
+                last_sent_releases[repo] = latest_release_id  # Обновляем последний отправленный релиз
+        time.sleep(3600)  # Проверка каждый час
+except KeyboardInterrupt:
+    logging.info("Скрипт завершен")
+except Exception as e:
+    logging.error(f"Неожиданная ошибка: {e}")
