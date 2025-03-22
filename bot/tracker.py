@@ -25,7 +25,8 @@ def send_telegram_message(message):
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         payload = {
             "chat_id": TELEGRAM_CHAT_ID,
-            "text": message
+            "text": message,
+            "parse_mode": "Markdown"  # Включаем поддержку Markdown
         }
         response = requests.post(url, json=payload)
         response.raise_for_status()  # Проверка на ошибки HTTP
@@ -41,10 +42,15 @@ def check_github_releases(repo):
         response.raise_for_status()  # Проверка на ошибки HTTP
         releases = response.json()
         if releases:
-            return releases[0]["id"], releases[0]["name"]  # Возвращаем ID и имя релиза
+            return (
+                releases[0]["id"],  # ID релиза
+                releases[0]["name"],  # Название релиза
+                releases[0]["html_url"],  # Ссылка на релиз
+                releases[0]["body"]  # Описание релиза
+            )
     except requests.exceptions.RequestException as e:
         logging.error(f"Ошибка при запросе к GitHub API: {e}")
-    return None, None
+    return None, None, None, None
 
 # Словарь для хранения последних отправленных релизов
 last_sent_releases = {repo: None for repo in REPOSITORIES}
@@ -54,12 +60,18 @@ logging.info("Скрипт запущен")
 try:
     while True:
         for repo in REPOSITORIES:
-            latest_release_id, latest_release_name = check_github_releases(repo)
+            latest_release_id, latest_release_name, latest_release_url, latest_release_body = check_github_releases(repo)
             if latest_release_id and latest_release_id != last_sent_releases[repo]:
-                message = f"Новый релиз в {repo}: {latest_release_name}"
+                # Формируем сообщение
+                repo_name = repo.split("/")[-1]  # Получаем имя репозитория (например, "transformers")
+                message = (
+                    f"новый релиз {repo_name}: {latest_release_name}\n"
+                    f"[подробнее]({latest_release_url})\n\n"
+                    f"Описание:\n{latest_release_body[:200]}..."  # Обрезаем описание до 200 символов
+                )
                 send_telegram_message(message)
                 last_sent_releases[repo] = latest_release_id  # Обновляем последний отправленный релиз
-        time.sleep(3600)  # Проверка каждый час
+        time.sleep(4*3600)  # Проверка каждые 4 часа
 except KeyboardInterrupt:
     logging.info("Скрипт завершен")
 except Exception as e:
