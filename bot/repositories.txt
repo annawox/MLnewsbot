@@ -1,3 +1,47 @@
-huggingface/transformers
-openai/gpt-4
+# Anthropic
+anthropic/claude
+
+# Cohere
+cohere-ai/cohere-python
+
+# DeepMind
+deepmind/alphafold
+deepmind/gato
+
+# Facebook Research
+facebookresearch/llama
+facebookresearch/segment-anything
+
+# Google
 google-research/bert
+tensorflow/tensorflow
+
+# Hugging Face
+huggingface/datasets
+huggingface/transformers
+
+# MidJourney
+midjourney/midjourney
+
+# Microsoft
+microsoft/Azure-AI
+
+# OpenAI
+openai/codex
+openai/dall-e
+openai/gpt-4
+
+# PyTorch
+pytorch/pytorch
+
+# Runway ML
+runwayml/runway
+
+# Stability AI
+stability-ai/stable-diffusion
+
+# ElevenLabs
+elevenlabs/elevenlabs-python
+
+# Mistral AI
+mistralai/mistral
