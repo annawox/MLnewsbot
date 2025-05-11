@@ -10,6 +10,7 @@ logging.basicConfig(
     filename="bot.log"  # Логи будут сохраняться в файл bot.log
 )
 
+
 # Настройки
 REPOSITORIES_FILE = os.path.join(os.path.dirname(__file__), "repositories.txt")  # Путь к файлу
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Токен из Secrets
