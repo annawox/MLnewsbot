@@ -4,7 +4,6 @@ anthropic/claude
 # Cohere
 cohere-ai/cohere-python
 
-
 # DeepMind
 deepmind/alphafold
 deepmind/gato
