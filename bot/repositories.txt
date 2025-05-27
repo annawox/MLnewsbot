@@ -1,7 +1,6 @@
 # Anthropic
 anthropic/claude
 
-
 # Cohere
 cohere-ai/cohere-python
 
