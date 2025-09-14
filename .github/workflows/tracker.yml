@@ -4,7 +4,6 @@ name: GitHub Release Tracker
 
 
 
-
 on:
   schedule:
     - cron: '0 * * * *'  # Запускать каждый час
